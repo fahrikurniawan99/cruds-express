@@ -49,7 +49,7 @@ const view = async (req, res) => {
 const store = async (req, res) => {
   try {
     await Product.sync();
-    const { user_id, name, price, stock, status, image_url } = req.body;
+    const { user_id, name, price, stock, status } = req.body;
     const image = req.file;
     const target = path.join(__dirname, "../../uploads", image.originalname);
     fs.renameSync(image.path, target);
@@ -75,18 +75,13 @@ const update = async (req, res) => {
   try {
     await Product.sync();
     const { id } = req.params;
-    const { user_id, name, price, stock, status, image_url } = req.body;
     const image = req.file;
     const target = path.join(__dirname, "../../uploads", image.originalname);
     fs.renameSync(image.path, target);
 
     await Product.update(
       {
-        user_id,
-        name,
-        price,
-        stock,
-        status,
+        ...req.body,
         image_url: `http://localhost:3000/public/${image.originalname}`,
       },
       {
@@ -95,12 +90,15 @@ const update = async (req, res) => {
         },
       }
     );
-    res.send({
+    res.status(201).json({
       status: "succces",
-      response: `product update successfully`,
+      response: {
+        ...req.body,
+      },
     });
   } catch (error) {
-    res.send(error);
+    console.log(error);
+    res.status(500).json(error);
   }
 };
 
